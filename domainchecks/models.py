@@ -1,6 +1,13 @@
 from django.db import models
 
 
+class ActiveManager(models.Manager):
+    """Manager to exclude non-active records."""
+
+    def get_queryset(self):
+        return super().get_queryset().filter(is_active=True)
+
+
 class DomainCheck(models.Model):
     """Configured website check."""
 
@@ -26,6 +33,9 @@ class DomainCheck(models.Model):
     method = models.CharField(
         max_length=4, choices=METHOD_CHOICES, default=METHOD_GET)
     is_active = models.BooleanField(default=True)
+
+    objects = models.Manager()
+    active = ActiveManager()
 
     def __str__(self):
         return '{method} {url}'.format(
