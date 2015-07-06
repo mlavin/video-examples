@@ -23,7 +23,7 @@ class DomainChecksTestCase(TestCase):
         active = self.create_domain_check(is_active=True)
         # Create another inactive
         self.create_domain_check(is_active=False)
-        result = models.DomainCheck.active.all().order_by('pk')
+        result = models.DomainCheck.objects.active().order_by('pk')
         self.assertQuerysetEqual(
             result, [active.pk], transform=lambda x: x.pk)
 
