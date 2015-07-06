@@ -1,4 +1,8 @@
+import datetime
+
 from django.db import models
+from django.db.models import Max, Q
+from django.utils.timezone import now
 
 
 class DomainCheckQuerySet(models.QuerySet):
@@ -6,6 +10,13 @@ class DomainCheckQuerySet(models.QuerySet):
 
     def active(self):
         return self.filter(is_active=True)
+
+    def stale(self, cutoff=datetime.timedelta(hours=1)):
+        end_time = now() - cutoff
+        return self.annotate(
+            last_check=Max('checkresult__checked_on')
+        ).filter(
+            Q(last_check__lt=end_time) | Q(last_check__isnull=True))
 
 
 class DomainCheck(models.Model):
