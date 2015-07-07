@@ -1,7 +1,7 @@
 import datetime
 
 from django.db import models
-from django.db.models import Max, Q
+from django.db.models import Case, Count, F, Max, Q, Value, When
 from django.utils.timezone import now
 
 
@@ -17,6 +17,27 @@ class DomainCheckQuerySet(models.QuerySet):
             last_check=Max('checkresult__checked_on')
         ).filter(
             Q(last_check__lt=end_time) | Q(last_check__isnull=True))
+
+    def status(self, cutoff=datetime.timedelta(hours=1)):
+        start_time = now() - cutoff
+        ping = Q(checkresult__checked_on__gte=start_time)
+        success = Q(
+            checkresult__checked_on__gte=start_time,
+            checkresult__status_code__range=(200, 299))
+        return self.annotate(
+            last_check=Max('checkresult__checked_on'),
+            successes=Count(Case(When(success, then=1))),
+            pings=Count(Case(When(ping, then=1))),
+        ).annotate(
+            success_rate=F('successes') * 100.0 / F('pings')
+        ).annotate(
+            status=Case(
+                When(success_rate__gt=90, then=Value('good')),
+                When(success_rate__range=(75, 90), then=Value('fair')),
+                When(success_rate__lt=75, then=Value('poor')),
+                When(success_rate__isnull=True, then=Value('unknown')),
+                output_field=models.CharField())
+        )
 
 
 class DomainCheck(models.Model):
