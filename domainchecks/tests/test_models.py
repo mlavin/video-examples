@@ -90,3 +90,21 @@ class DomainChecksTestCase(TestCase):
         result = models.DomainCheck.objects.active().stale().order_by('pk')
         self.assertQuerysetEqual(
             result, [stale.pk, no_results.pk], transform=lambda x: x.pk)
+
+    def test_variable_stale_cutoff(self):
+        """Pass in a non-default cutoff value for the stale check."""
+        # Domain with a recent check
+        recent = self.create_domain_check()
+        self.create_check_result(domain_check=recent)
+        # Domain with an old check but within the new cutoff
+        stale = self.create_domain_check()
+        self.create_check_result(
+            domain_check=stale,
+            checked_on=now() - datetime.timedelta(days=1))
+        # Domain with no checks
+        no_results = self.create_domain_check()
+        result = models.DomainCheck.objects.stale(
+            cutoff=datetime.timedelta(days=2)).order_by('pk')
+        self.assertQuerysetEqual(
+            result, [no_results.pk, ], transform=lambda x: x.pk)
+
