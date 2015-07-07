@@ -108,3 +108,62 @@ class DomainChecksTestCase(TestCase):
         self.assertQuerysetEqual(
             result, [no_results.pk, ], transform=lambda x: x.pk)
 
+    def test_single_check_status(self):
+        """Annotated status for a single check."""
+        check = self.create_domain_check()
+        # Now
+        self.create_check_result(domain_check=check)
+        # 15 mins ago (failure)
+        self.create_check_result(
+            domain_check=check, status_code=500,
+            checked_on=now() - datetime.timedelta(minutes=15))
+        # 30 mins ago (failure)
+        self.create_check_result(
+            domain_check=check, status_code=403,
+            checked_on=now() - datetime.timedelta(minutes=30))
+        # 45 mins ago
+        self.create_check_result(
+            domain_check=check,
+            checked_on=now() - datetime.timedelta(minutes=15))
+        result = models.DomainCheck.objects.status().get(pk=check.pk)
+        self.assertEqual(result.successes, 2)
+        self.assertEqual(result.pings, 4)
+        self.assertEqual(result.success_rate, 50.0)
+        self.assertEqual(result.status, 'poor')
+
+    def test_multiple_check_status(self):
+        """Annotate a queryset of multiple domain checks."""
+        good = self.create_domain_check()
+        fair = self.create_domain_check()
+        poor = self.create_domain_check()
+        # Domain with no checks will have an unknown status
+        self.create_domain_check()
+        # Now
+        self.create_check_result(domain_check=good)
+        self.create_check_result(domain_check=fair)
+        self.create_check_result(domain_check=poor)
+        # 15 mins ago
+        self.create_check_result(
+            domain_check=fair, status_code=500,
+            checked_on=now() - datetime.timedelta(minutes=15))
+        self.create_check_result(
+            domain_check=poor, status_code=500,
+            checked_on=now() - datetime.timedelta(minutes=15))
+        # 30 mins ago
+        self.create_check_result(
+            domain_check=fair,
+            checked_on=now() - datetime.timedelta(minutes=30))
+        self.create_check_result(
+            domain_check=poor, status_code=403,
+            checked_on=now() - datetime.timedelta(minutes=30))
+        # 45 mins ago
+        self.create_check_result(
+            domain_check=fair,
+            checked_on=now() - datetime.timedelta(minutes=15))
+        self.create_check_result(
+            domain_check=poor,
+            checked_on=now() - datetime.timedelta(minutes=15))
+        result = models.DomainCheck.objects.status().order_by('pk')
+        self.assertQuerysetEqual(
+            result, ['good', 'fair', 'poor', 'unknown', ],
+            transform=lambda x: x.status)
