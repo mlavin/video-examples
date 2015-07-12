@@ -4,13 +4,30 @@ from django.utils.timesince import timesince
 from . import models
 
 
+class StatusListFilter(admin.SimpleListFilter):
+    title = 'status'
+    parameter_name = 'status'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('good', 'Good'),
+            ('fair', 'Fair'),
+            ('poor', 'Poor'),
+            ('unknown', 'Unknown'),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(status=self.value())
+
+
 @admin.register(models.DomainCheck)
 class DomainCheckAdmin(admin.ModelAdmin):
 
     list_display = (
         'domain', 'path', 'protocol', 'method', 'is_active',
         'status', 'last_checked', )
-    list_filter = ('protocol', 'method', 'is_active', )
+    list_filter = ('protocol', 'method', StatusListFilter, 'is_active', )
     search_fields = ('domain', )
 
     def get_queryset(self, request):
