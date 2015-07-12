@@ -26,3 +26,11 @@ class DomainCheckAdmin(admin.ModelAdmin):
         else:
             return 'Never'
     last_checked.admin_order_field = 'last_check'
+
+
+@admin.register(models.CheckResult)
+class CheckResultAdmin(admin.ModelAdmin):
+
+    date_hierarchy = 'checked_on'
+    list_display = ('domain_check', 'status_code', )
+    list_filter = ('checked_on', )
