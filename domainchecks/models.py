@@ -1,4 +1,7 @@
 import datetime
+import time
+
+import requests
 
 from django.db import models
 from django.db.models import Case, Count, F, Max, Q, Value, When
@@ -76,6 +79,29 @@ class DomainCheck(models.Model):
     def url(self):
         return '{protocol}://{domain}{path}'.format(
             protocol=self.protocol, domain=self.domain, path=self.path)
+
+    def run_check(self, timeout=10):
+        start = time.time()
+        result = CheckResult(domain_check=self, checked_on=now())
+        try:
+            response = requests.request(
+                self.method, self.url, allow_redirects=False, timeout=timeout)
+            result.status_code = response.status_code
+            response.raise_for_status()
+        except requests.exceptions.ConnectionError:
+            # Host could not be resolved or the connection was refused
+            pass
+        except requests.exceptions.Timeout:
+            # Request timed out
+            pass
+        except requests.exceptions.RequestException:
+            # Server responded with 4XX or 5XX status code
+            result.response_body = response.text
+        else:
+            result.response_body = response.text
+        finally:
+            result.response_time = time.time() - start
+            result.save()
 
 
 class CheckResult(models.Model):
