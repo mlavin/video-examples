@@ -29,6 +29,7 @@ class DomainCheckAdmin(admin.ModelAdmin):
         'status', 'last_checked', )
     list_filter = ('protocol', 'method', StatusListFilter, 'is_active', )
     search_fields = ('domain', )
+    actions = ('run_check', )
 
     def get_queryset(self, request):
         return super().get_queryset(request).status()
@@ -43,6 +44,11 @@ class DomainCheckAdmin(admin.ModelAdmin):
         else:
             return 'Never'
     last_checked.admin_order_field = 'last_check'
+
+    def run_check(self, request, queryset):
+        for item in queryset:
+            item.run_check()
+    run_check.short_description = 'Run the domain check'
 
 
 @admin.register(models.CheckResult)
