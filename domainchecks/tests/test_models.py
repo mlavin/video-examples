@@ -1,5 +1,9 @@
 import datetime
 
+from unittest.mock import Mock, patch
+
+from requests import ConnectionError, HTTPError, Timeout
+
 from django.test import TestCase
 from django.utils.timezone import now
 
@@ -167,3 +171,61 @@ class DomainChecksTestCase(TestCase):
         self.assertQuerysetEqual(
             result, ['good', 'fair', 'poor', 'unknown', ],
             transform=lambda x: x.status)
+
+    @patch('requests.request')
+    def test_run_check_success(self, mock_fetch):
+        """Fetch a page succesfully and save the result."""
+        mock_fetch.return_value = Mock(status_code=200, text='Ok')
+        domain = self.create_domain_check()
+        domain.run_check()
+        checks = domain.checkresult_set.all()
+        self.assertEqual(checks.count(), 1)
+        check = checks[0]
+        self.assertEqual(check.checked_on.date(), now().date())
+        self.assertGreater(check.response_time, 0)
+        self.assertEqual(check.status_code, 200)
+        self.assertEqual(check.response_body, 'Ok')
+
+    @patch('requests.request')
+    def test_run_check_failure(self, mock_fetch):
+        """Fetch a page with an error status and save the result."""
+        result = Mock(status_code=404, text='Not Found')
+        result.raise_for_status.side_effect = HTTPError
+        mock_fetch.return_value = result
+        domain = self.create_domain_check()
+        domain.run_check()
+        checks = domain.checkresult_set.all()
+        self.assertEqual(checks.count(), 1)
+        check = checks[0]
+        self.assertEqual(check.checked_on.date(), now().date())
+        self.assertGreater(check.response_time, 0)
+        self.assertEqual(check.status_code, 404)
+        self.assertEqual(check.response_body, 'Not Found')
+
+    @patch('requests.request')
+    def test_run_check_timeout(self, mock_fetch):
+        """Fetch a page which times out and save the result."""
+        mock_fetch.side_effect = Timeout
+        domain = self.create_domain_check()
+        domain.run_check()
+        checks = domain.checkresult_set.all()
+        self.assertEqual(checks.count(), 1)
+        check = checks[0]
+        self.assertEqual(check.checked_on.date(), now().date())
+        self.assertGreater(check.response_time, 0)
+        self.assertIsNone(check.status_code)
+        self.assertEqual(check.response_body, '')
+
+    @patch('requests.request')
+    def test_run_check_connection_error(self, mock_fetch):
+        """Fetch a page which can't connect and save the result."""
+        mock_fetch.side_effect = ConnectionError
+        domain = self.create_domain_check()
+        domain.run_check()
+        checks = domain.checkresult_set.all()
+        self.assertEqual(checks.count(), 1)
+        check = checks[0]
+        self.assertEqual(check.checked_on.date(), now().date())
+        self.assertGreater(check.response_time, 0)
+        self.assertIsNone(check.status_code)
+        self.assertEqual(check.response_body, '')
