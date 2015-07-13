@@ -29,7 +29,7 @@ class DomainCheckAdmin(admin.ModelAdmin):
         'status', 'last_checked', )
     list_filter = ('protocol', 'method', StatusListFilter, 'is_active', )
     search_fields = ('domain', )
-    actions = ('run_check', )
+    actions = ('run_check', 'mark_inactive', )
 
     def get_queryset(self, request):
         return super().get_queryset(request).status()
@@ -49,6 +49,14 @@ class DomainCheckAdmin(admin.ModelAdmin):
         for item in queryset:
             item.run_check()
     run_check.short_description = 'Run the domain check'
+
+    def mark_inactive(self, request, queryset):
+        ids = queryset.values_list('pk', flat=True)
+        count = self.model.objects.filter(pk__in=ids).update(is_active=False)
+        message = '{count} domain{plural} made inactive.'.format(
+            count=count, plural=' was' if count == 1 else 's were')
+        self.message_user(request, message)
+    mark_inactive.short_description = 'Make checks inactive'
 
 
 @admin.register(models.CheckResult)
