@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html>{% load staticfiles %}
 <html lang="en" class="no-js">
 <head>
     <meta charset="utf-8">
@@ -9,6 +9,7 @@
          href="//cdnjs.cloudflare.com/ajax/libs/normalize/3.0.3/normalize.min.css">
     <link rel="stylesheet" type="text/css" media="all"
         href="//cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
+    <link rel="stylesheet" type="text/css" media="all" href="{% static 'css/statuspage.css' %}">
     {% block extra-css %}{% endblock %}
     <script src="//cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
 </head>
