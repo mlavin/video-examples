@@ -1,0 +1,34 @@
+{% extends "domainchecks/base.html" %}
+
+{% block body-id %}status-list{% endblock %}
+
+{% block page-header %}All Domain Checks{% endblock %}
+
+{% block content %}
+    {% for domain in domains %}
+        <section class="domain">
+            <div class="row">
+                <div class="six columns name">
+                    <h2>{{ domain.domain }}</h2>
+                </div>
+                <div class="six columns action">
+                    <a class="button button-primary"
+                        href="{% url 'status-detail' domain=domain.domain %}">More Details</a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="six columns status {{ domain.status }}">
+                    <span class="label">Success Rate</span>
+                    <span class="value" title="{{ domain.successes }} of {{ domain.pings }}">
+                        {% if domain.success_rate %}{{ domain.success_rate }}%{% else %}Unknown{% endif %}
+                    </span>
+                </div>
+                <div class="six columns status">
+                    <span class="label">Last Check</span>
+                    <span class="value">{{ domain.last_check|timesince }} ago</span>
+                </div>
+
+            </div>
+        </section>
+    {% endfor %}
+{% endblock %}

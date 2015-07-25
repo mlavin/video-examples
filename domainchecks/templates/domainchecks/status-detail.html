@@ -1,0 +1,35 @@
+{% extends "domainchecks/base.html" %}
+
+{% block body-id %}status-detail{% endblock %}
+
+{% block page-header %}{{ view.kwargs.domain }}{% endblock %}
+
+{% block nav-items %}
+    {{ block.super }}
+    <li class="divider">//</li>
+    <li>{{ view.kwargs.domain }}</li>
+{% endblock %}
+
+{% block content %}
+    {% for check in checks %}
+        <section class="check">
+            <div class="row">
+                <div class="twelve columns name">
+                    <h2>{{ check.get_protocol_display }} {{ check.get_method_display }} {{ check.path }}</h2>
+                </div>
+            </div>
+            <div class="row">
+                <div class="six columns status {{ check.status }}">
+                    <span class="label">Success Rate</span>
+                    <span class="value" title="{{ check.successes }} of {{ check.pings }}">
+                        {% if check.success_rate %}{{ check.success_rate }}%{% else %}Unknown{% endif %}
+                    </span>
+                </div>
+                <div class="six columns status">
+                    <span class="label">Last Check</span>
+                    <span class="value">{{ check.last_check|timesince }} ago</span>
+                </div>
+            </div>
+        </section>
+    {% endfor %}
+{% endblock %}

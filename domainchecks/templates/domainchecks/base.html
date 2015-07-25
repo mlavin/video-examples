@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% load staticfiles %}
+
+{% block extra-css %}
+<link rel="stylesheet" type="text/css" media="all" href="{% static 'domainchecks/css/checks.css' %}">
+{% endblock %}
+
+{% block body-class %}checks{% endblock %}
