@@ -22,7 +22,7 @@
                 <div class="six columns status {{ domain.status }}">
                     <span class="label">Success Rate</span>
                     <span class="value" title="{{ domain.successes }} of {{ domain.pings }}">
-                        {% if domain.success_rate %}{{ domain.success_rate }}%{% else %}Unknown{% endif %}
+                        {{ domain.success_rate|default_if_none:"Unknown" }}%
                     </span>
                 </div>
                 <div class="six columns status">
