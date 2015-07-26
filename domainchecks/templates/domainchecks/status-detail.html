@@ -1,5 +1,7 @@
 {% extends "domainchecks/base.html" %}
 
+{% load staticfiles %}
+
 {% block body-id %}status-detail{% endblock %}
 
 {% block page-header %}{{ view.kwargs.domain }}{% endblock %}
@@ -30,6 +32,21 @@
                     <span class="value">{{ check.last_check|timesince }} ago</span>
                 </div>
             </div>
+            <div class="row charts" data-url="{% url 'status-timeline' check=check.id %}">
+                <div class="tweleve columns">
+                    <span class="label">Response Time (ms)</span>
+                    <div class="chart response-time">
+                        <div class="loading"></div>
+                    </div>
+                </div>
+            </div>
         </section>
     {% endfor %}
+{% endblock %}
+
+{% block extra-js %}
+    <script src="//cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.resize.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.time.min.js"></script>
+    <script src="{% static 'domainchecks/js/timeline.js' %}"></script>
 {% endblock %}
