@@ -1,3 +1,5 @@
+import datetime
+
 from unittest.mock import Mock
 
 from django.core.urlresolvers import reverse
@@ -93,9 +95,37 @@ class CheckTimelineViewTestCase(TestCase):
         """A check with no results should return no results."""
         check = factories.create_domain_check()
         url = reverse('status-timeline', kwargs={'check': check.pk})
-        request = self.factory.get(url)
+        today = datetime.datetime.now()
+        yesterday = today - datetime.timedelta(days=1)
+        data = {
+            'start': yesterday.isoformat(sep=' '),
+            'end': today.isoformat(sep=' '),
+        }
+        request = self.factory.get(url, data=data)
         response = self.view(request, check=check.pk)
         self.assertEqual(response.status_code, 200)
+
+    def test_no_range(self):
+        """The start and end range are required."""
+        check = factories.create_domain_check()
+        url = reverse('status-timeline', kwargs={'check': check.pk})
+        request = self.factory.get(url)
+        response = self.view(request, check=check.pk)
+        self.assertEqual(response.status_code, 400)
+
+    def test_invalid_range(self):
+        """Handle an invalid range."""
+        check = factories.create_domain_check()
+        url = reverse('status-timeline', kwargs={'check': check.pk})
+        today = datetime.datetime.now()
+        yesterday = today - datetime.timedelta(days=1)
+        data = {
+            'start': today.isoformat(sep=' '),
+            'end': yesterday.isoformat(sep=' '),
+        }
+        request = self.factory.get(url, data=data)
+        response = self.view(request, check=check.pk)
+        self.assertEqual(response.status_code, 400)
 
     def test_inactive(self):
         """Inactive checks should 404."""
@@ -112,12 +142,10 @@ class CheckTimelineViewTestCase(TestCase):
         view.args = []
         view.kwargs = {'check': 1}
         context = {
-            'page_obj': Mock(object_list=[]),
-            'paginator': Mock(count=0),
             'object_list': [],
         }
         result = view.get_results(context)
-        self.assertEqual(result, {'count': 0, 'results': []})
+        self.assertEqual(result, {'results': []})
 
     def test_render_response(self):
         """Response data should be returned as JSON."""
@@ -127,7 +155,13 @@ class CheckTimelineViewTestCase(TestCase):
         failure = factories.create_check_result(
             domain_check=check, status_code=404, response_time=0.1)
         url = reverse('status-timeline', kwargs={'check': check.pk})
-        request = self.factory.get(url)
+        today = datetime.datetime.now()
+        yesterday = today - datetime.timedelta(days=1)
+        data = {
+            'start': yesterday.isoformat(sep=' '),
+            'end': today.isoformat(sep=' '),
+        }
+        request = self.factory.get(url, data=data)
         response = self.view(request, check=check.pk)
         self.assertEqual(response['Content-Type'], 'application/json')
 
@@ -153,4 +187,4 @@ class CheckTimelineViewTestCase(TestCase):
             },
         ]
         self.assertJSONEqual(
-            response.content.decode('utf-8'), {'count': 2, 'results': expected})
+            response.content.decode('utf-8'), {'results': expected})
