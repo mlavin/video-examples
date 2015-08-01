@@ -48,5 +48,23 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.resize.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.time.min.js"></script>
+    <script id="chartOptions" type="text/json">
+        {
+            "xaxes": [{
+                "show": true,
+                "mode": "time",
+                "minTickSize": [1, "hour"],
+                "timezone": "browser"
+            }],
+            "yaxes": [{
+                "show": true,
+                "position": "left",
+                "min": 0
+            }],
+            "legend": {
+                "show": false
+            }
+        }
+    </script>
     <script src="{% static 'domainchecks/js/timeline.js' %}"></script>
 {% endblock %}

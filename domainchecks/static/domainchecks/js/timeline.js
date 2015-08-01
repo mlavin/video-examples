@@ -1,22 +1,7 @@
 (function ($) {
     'use strict';
 
-    var chartOptions = {
-        xaxes: [{
-            show: true,
-            mode: 'time',
-            minTickSize: [1, 'hour'],
-            timezone: 'browser'
-        }],
-        yaxes: [{
-            show: true,
-            position: 'left',
-            min: 0
-        }],
-        legend: {
-            show: false
-        }
-    };
+    var chartOptions = JSON.parse($('#chartOptions').text());
 
     function renderResponseTimes(elem, data) {
         var series = data.map(function (item) {
