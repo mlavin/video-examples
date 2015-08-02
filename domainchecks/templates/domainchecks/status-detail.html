@@ -35,6 +35,12 @@
             <div class="row charts" data-url="{% url 'status-timeline' check=check.id %}">
                 <div class="tweleve columns">
                     <span class="label">Response Time (ms)</span>
+                    <select name="timeframe">
+                        <option value="1">Past Hour</option>
+                        <option value="6">Past 6 Hours</option>
+                        <option value="12">Past 12 Hours</option>
+                        <option value="24">Past Day</option>
+                    </select>
                     <div class="chart response-time">
                         <div class="loading"></div>
                     </div>
