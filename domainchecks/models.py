@@ -80,7 +80,7 @@ class DomainCheck(models.Model):
     )
 
     domain = models.CharField(max_length=253)
-    domain_new = models.ForeignKey(Domain, null=True)
+    domain_new = models.ForeignKey(Domain)
     path = models.CharField(max_length=1024)
     protocol = models.CharField(
         max_length=5, choices=PROTOCOL_CHOICES, default=PROTOCOL_HTTP)
