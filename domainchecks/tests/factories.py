@@ -1,6 +1,26 @@
+import random
+import string
+
+from django.contrib.auth import get_user_model
 from django.utils.timezone import now
 
 from .. import models
+
+
+def create_user(**kwargs):
+    """Create sample user."""
+    username = ''.join(random.choice(string.ascii_letters) for x in range(30))
+    values = {
+        'username': username,
+        'email': '{}@example.com'.format(username),
+        'password': 'test',
+    }
+    values.update(kwargs)
+    User = get_user_model()
+    user = User.objects.create(**values)
+    user.set_password(values['password'])
+    user.save(update_fields=('password', ))
+    return user
 
 
 def create_domain_check(**kwargs):
