@@ -3,6 +3,7 @@ import time
 
 import requests
 
+from django.conf import settings
 from django.db import models
 from django.db.models import Case, Count, F, Max, Q, Value, When
 from django.utils.timezone import now
@@ -41,6 +42,16 @@ class DomainCheckQuerySet(models.QuerySet):
                 When(success_rate__isnull=True, then=Value('unknown')),
                 output_field=models.CharField())
         )
+
+
+class Domain(models.Model):
+    """Domain managed by a user."""
+
+    name = models.CharField(max_length=253, unique=True)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL)
+
+    def __str__(self):
+        return self.name
 
 
 class DomainCheck(models.Model):
