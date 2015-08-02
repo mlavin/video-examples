@@ -56,9 +56,16 @@ class DomainCheck(models.Model):
 
     METHOD_GET = 'get'
     METHOD_POST = 'post'
+    METHOD_PUT = 'put'
+    METHOD_DELETE = 'delete'
+    METHOD_HEAD = 'head'
+
     METHOD_CHOICES = (
         (METHOD_GET, 'GET'),
         (METHOD_POST, 'POST'),
+        (METHOD_PUT, 'PUT'),
+        (METHOD_DELETE, 'DELETE'),
+        (METHOD_HEAD, 'HEAD'),
     )
 
     domain = models.CharField(max_length=253)
@@ -66,7 +73,7 @@ class DomainCheck(models.Model):
     protocol = models.CharField(
         max_length=5, choices=PROTOCOL_CHOICES, default=PROTOCOL_HTTP)
     method = models.CharField(
-        max_length=4, choices=METHOD_CHOICES, default=METHOD_GET)
+        max_length=6, choices=METHOD_CHOICES, default=METHOD_GET)
     is_active = models.BooleanField(default=True)
 
     objects = DomainCheckQuerySet.as_manager()
