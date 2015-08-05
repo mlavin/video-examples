@@ -20,7 +20,7 @@ class StatusDetail(ListView):
 
     def get_queryset(self):
         return DomainCheck.objects.active().filter(
-            domain=self.kwargs['domain']).status().order_by('path')
+            domain__name=self.kwargs['domain']).status().order_by('path')
 
 
 class CheckTimeline(ListView):
