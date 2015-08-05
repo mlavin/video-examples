@@ -11,11 +11,12 @@
         <section class="domain">
             <div class="row">
                 <div class="six columns name">
-                    <h2>{{ domain.domain }}</h2>
+                    <h2>{{ domain.domain__name }}</h2>
                 </div>
                 <div class="six columns action">
                     <a class="button button-primary"
-                        href="{% url 'status-detail' domain=domain.domain %}">More Details</a>
+                        href="{% url 'status-detail' domain=domain.domain__name %}">
+                        More Details</a>
                 </div>
             </div>
             <div class="row">
