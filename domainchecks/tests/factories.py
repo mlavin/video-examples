@@ -23,6 +23,18 @@ def create_user(**kwargs):
     return user
 
 
+def create_domain(**kwargs):
+    """Create a sample domain."""
+    name = ''.join(random.choice(string.ascii_lowercase) for x in range(15))
+    values = {
+        'name': '{}.com'.format(name),
+    }
+    values.update(**kwargs)
+    if 'owner' not in values:
+        values['owner'] = create_user()
+    return models.Domain.objects.create(**values)
+
+
 def create_domain_check(**kwargs):
     """Create a sample domain check."""
     values = {
@@ -33,6 +45,12 @@ def create_domain_check(**kwargs):
         'is_active': True,
     }
     values.update(kwargs)
+    if not isinstance(values['domain'], models.Domain):
+        domain = values['domain']
+        try:
+            values['domain'] = models.Domain.objects.get(name=domain)
+        except models.Domain.DoesNotExist:
+            values['domain'] = create_domain(name=domain)
     return models.DomainCheck.objects.create(**values)
 
 
