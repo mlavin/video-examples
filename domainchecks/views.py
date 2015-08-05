@@ -7,7 +7,8 @@ from .models import DomainCheck, CheckResult
 
 
 class StatusList(ListView):
-    queryset = DomainCheck.objects.active().values('domain').status().order_by('domain')
+    queryset = DomainCheck.objects.active().values(
+        'domain__name').status().order_by('domain__name')
     template_name = 'domainchecks/status-list.html'
     context_object_name = 'domains'
 
