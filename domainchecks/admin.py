@@ -21,6 +21,14 @@ class StatusListFilter(admin.SimpleListFilter):
             return queryset.filter(status=self.value())
 
 
+@admin.register(models.Domain)
+class DomainAdmin(admin.ModelAdmin):
+
+    list_display = ('name', 'owner', )
+    list_filter = ('owner', )
+    search_fields = ('name', )
+
+
 @admin.register(models.DomainCheck)
 class DomainCheckAdmin(admin.ModelAdmin):
 
@@ -28,7 +36,7 @@ class DomainCheckAdmin(admin.ModelAdmin):
         'domain', 'path', 'protocol', 'method', 'is_active',
         'status', 'last_checked', )
     list_filter = ('protocol', 'method', StatusListFilter, 'is_active', )
-    search_fields = ('domain', )
+    search_fields = ('domain__name', )
     actions = ('run_check', 'mark_inactive', )
 
     def get_queryset(self, request):
