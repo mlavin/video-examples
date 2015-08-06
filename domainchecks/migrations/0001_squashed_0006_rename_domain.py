@@ -5,11 +5,6 @@ from django.db import models, migrations
 from django.conf import settings
 
 
-# Functions from the following migrations need manual copying.
-# Move them and any dependencies into this file, then update the
-# RunPython operations to refer to the local versions:
-# domainchecks.migrations.0005_populate_new_domain
-
 class Migration(migrations.Migration):
 
     replaces = [('domainchecks', '0001_initial'), ('domainchecks', '0002_http_methods'), ('domainchecks', '0003_domain_model'), ('domainchecks', '0004_new_domain'), ('domainchecks', '0005_populate_new_domain'), ('domainchecks', '0006_rename_domain')]
@@ -33,7 +28,6 @@ class Migration(migrations.Migration):
             name='DomainCheck',
             fields=[
                 ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
-                ('domain', models.CharField(max_length=253)),
                 ('path', models.CharField(max_length=1024)),
                 ('protocol', models.CharField(choices=[('http', 'HTTP'), ('https', 'HTTPS')], max_length=5, default='http')),
                 ('method', models.CharField(choices=[('get', 'GET'), ('post', 'POST'), ('put', 'PUT'), ('delete', 'DELETE'), ('head', 'HEAD')], max_length=6, default='get')),
@@ -55,19 +49,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='domaincheck',
-            name='domain_new',
-            field=models.ForeignKey(null=True, to='domainchecks.Domain'),
-        ),
-        migrations.RunPython(
-            code=domainchecks.migrations.0005_populate_new_domain.create_domain_records,
-        ),
-        migrations.RenameField(
-            model_name='domaincheck',
-            old_name='domain_new',
-            new_name='domain',
-        ),
-        migrations.RemoveField(
-            model_name='domaincheck',
             name='domain',
+            field=models.ForeignKey(to='domainchecks.Domain'),
         ),
     ]
