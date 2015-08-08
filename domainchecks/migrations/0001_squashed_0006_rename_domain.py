@@ -7,8 +7,6 @@ from django.conf import settings
 
 class Migration(migrations.Migration):
 
-    replaces = [('domainchecks', '0001_initial'), ('domainchecks', '0002_http_methods'), ('domainchecks', '0003_domain_model'), ('domainchecks', '0004_new_domain'), ('domainchecks', '0005_populate_new_domain'), ('domainchecks', '0006_rename_domain')]
-
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
