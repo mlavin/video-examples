@@ -1,26 +1,43 @@
+from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse
 from django.views.generic import ListView
 from django.shortcuts import get_object_or_404
 
 from .forms import CheckResultFilter
-from .models import DomainCheck, CheckResult
+from .models import Domain, DomainCheck, CheckResult
 
 
 class StatusList(ListView):
-    queryset = DomainCheck.objects.active().values(
-        'domain__name').status().order_by('domain__name')
     template_name = 'domainchecks/status-list.html'
     context_object_name = 'domains'
 
+    def get_queryset(self):
+        if self.request.user.is_authenticated():
+            return DomainCheck.objects.active().filter(
+                domain__owner=self.request.user
+            ).values('domain__name').status().order_by('domain__name')
+        else:
+            return DomainCheck.objects.none()
+
 
 class StatusDetail(ListView):
-    template_name = 'domainchecks/status-detail.html'
+    template_name = 'domainchecks/public-status-detail.html'
     allow_empty = False
     context_object_name = 'checks'
 
     def get_queryset(self):
         return DomainCheck.objects.active().filter(
             domain__name=self.kwargs['domain']).status().order_by('path')
+
+
+class PrivateStatusDetail(StatusDetail):
+    template_name = 'domainchecks/status-detail.html'
+
+    def get_queryset(self):
+        domain = get_object_or_404(Domain, name=self.kwargs['domain'])
+        if domain.owner != self.request.user:
+            raise PermissionDenied('Must be the domain owner to view this page.')
+        return super().get_queryset()
 
 
 class CheckTimeline(ListView):
