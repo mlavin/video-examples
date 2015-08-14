@@ -1,0 +1,52 @@
+{% extends "domainchecks/base.html" %}
+
+{% block page-header %}
+    {% if object and object.pk %}
+        {{ object.name }} Settings
+    {% else %}
+        Add a Domain
+    {% endif %}
+{% endblock %}
+
+{% block nav-items %}
+    {{ block.super }}
+    {% if object and object.pk %}
+        <li class="divider">//</li>
+        <li>
+            <a href="{% url 'status-detail' domain=object.name %}">
+                {{ object.name }}
+            </a>
+        </li>
+        <li class="divider">//</li>
+        <li>Settings</li>
+    {% else %}
+        <li class="divider">//</li>
+        <li>Add Domain</li>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<section class="form-wrapper">
+    <form method="post" action="">{% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="row">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+        <div class="row">
+            <div class="tweleve columns">
+                {{ form.name.errors }}
+                {{ form.name.label_tag }} {{ form.name }}
+            </div>
+        </div>
+        <div class="row">
+            <button class="button-primary">
+                {% if object and object.pk %}
+                    Update
+                {% else %}
+                    Add
+                {% endif %} Domain</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

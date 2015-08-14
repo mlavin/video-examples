@@ -4,6 +4,7 @@ import time
 import requests
 
 from django.conf import settings
+from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models import Case, Count, F, Max, Q, Value, When
 from django.utils.timezone import now
@@ -52,6 +53,9 @@ class Domain(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_absolute_url(self):
+        return reverse('status-detail', kwargs={'domain': self.name})
 
 
 class DomainCheck(models.Model):

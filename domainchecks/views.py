@@ -1,6 +1,6 @@
 from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse
-from django.views.generic import ListView
+from django.views.generic import CreateView, ListView, UpdateView
 from django.shortcuts import get_object_or_404
 
 from .forms import CheckResultFilter
@@ -61,3 +61,27 @@ class CheckTimeline(ListView):
         return {
             'results': results,
         }
+
+
+class CreateDomain(CreateView):
+    model = Domain
+    fields = ('name', )
+    template_name = 'domainchecks/domain-form.html'
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
+
+
+class EditDomain(UpdateView):
+    model = Domain
+    fields = ('name', )
+    template_name = 'domainchecks/domain-form.html'
+    slug_field = 'name'
+    slug_url_kwarg = 'domain'
+
+    def get_object(self):
+        domain = super().get_object()
+        if domain.owner != self.request.user:
+            raise PermissionDenied('Must be the owner to edit')
+        return domain

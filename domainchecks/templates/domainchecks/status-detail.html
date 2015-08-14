@@ -10,6 +10,10 @@
     {{ block.super }}
     <li class="divider">//</li>
     <li>{{ view.kwargs.domain }}</li>
+
+    <li class="u-pull-right">
+        <a href="{% url 'domain-edit' domain=view.kwargs.domain %}">Edit Domain</a>
+    </li>
 {% endblock %}
 
 {% block content %}
