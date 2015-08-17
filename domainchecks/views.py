@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from django.views.generic import CreateView, ListView, UpdateView
 from django.shortcuts import get_object_or_404
 
-from .forms import CheckResultFilter
+from .forms import CheckResultFilter, DomainForm
 from .models import Domain, DomainCheck, CheckResult
 
 
@@ -65,7 +65,7 @@ class CheckTimeline(ListView):
 
 class CreateDomain(CreateView):
     model = Domain
-    fields = ('name', )
+    form_class = DomainForm
     template_name = 'domainchecks/domain-form.html'
 
     def form_valid(self, form):
@@ -75,7 +75,7 @@ class CreateDomain(CreateView):
 
 class EditDomain(UpdateView):
     model = Domain
-    fields = ('name', )
+    form_class = DomainForm
     template_name = 'domainchecks/domain-form.html'
     slug_field = 'name'
     slug_url_kwarg = 'domain'

@@ -40,6 +40,33 @@
             </div>
         </div>
         <div class="row">
+            <h3>Status Checks</h3>
+            {{ form.checks.management_form }}
+        </div>
+        {% if form.checks.non_form_errors %}
+            <div class="row">
+                {{ form.checks.non_form_errors }}
+            </div>
+        {% endif %}
+        {% for check_form in form.checks %}
+            {% if check_form.non_field_errors %}
+                <div class="row">
+                    {{ check_form.non_field_errors }}
+                </div>
+            {% endif %}
+            <div class="row">
+                {% for field in check_form.visible_fields %}
+                    <div class="three columns">
+                        {{ field.errors }}
+                        {{ field.label_tag }} {{ field }}
+                    </div>
+                {% endfor %}
+                {% for hidden in check_form.hidden_fields %}
+                    {{ hidden }}
+                {% endfor %}
+            </div>
+        {% endfor %}
+        <div class="row">
             <button class="button-primary">
                 {% if object and object.pk %}
                     Update

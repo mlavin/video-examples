@@ -1,6 +1,7 @@
 import django_filters
 
 from django import forms
+from django.forms.models import inlineformset_factory
 
 from . import models
 
@@ -34,3 +35,36 @@ class CheckResultFilter(django_filters.FilterSet):
         model = models.CheckResult
         form = CheckFilterForm
         order_by = ('-checked_on', )
+
+
+DomainCheckFormSet = inlineformset_factory(
+    parent_model=models.Domain, model=models.DomainCheck,
+    fields=('protocol', 'path', 'method', 'is_active', ),
+    extra=3, can_delete=False,
+    max_num=3, validate_max=True,
+    min_num=1, validate_min=True,
+)
+
+
+class DomainForm(forms.ModelForm):
+    """Form to allow users to create/edit their own domains."""
+
+    class Meta:
+        model = models.Domain
+        fields = ('name', )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.checks = DomainCheckFormSet(
+            instance=self.instance, prefix='checks',
+            data=self.data if self.is_bound else None)
+
+    def is_valid(self):
+        domain_valid = super().is_valid()
+        checks_valid = self.checks.is_valid()
+        return domain_valid and checks_valid
+
+    def save(self, commit=True):
+        domain = super().save(commit=commit)
+        domain._checks = self.checks.save(commit=commit)
+        return domain

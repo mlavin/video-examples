@@ -280,6 +280,32 @@ class CreateDomainViewTestCase(TestCase):
         self.view = views.CreateDomain.as_view()
         self.user = factories.create_user(password='test')
 
+    def get_valid_data(self, checks=1):
+        result = self.get_form_data()
+        result.update(self.get_formset_data(checks=checks))
+        return result
+
+    def get_form_data(self):
+        return {'name': 'example.com'}
+
+    def get_formset_data(self, checks=1):
+        data = {
+            'checks-TOTAL_FORMS': '3',
+            'checks-INITIAL_FORMS': '0',
+            'checks-MIN_NUM_FORMS': '1',
+            'checks-MAX_NUM_FORMS': '3',
+        }
+        for i in range(3):
+            data.update({
+                'checks-{}-protocol'.format(i): 'http',
+                'checks-{}-path'.format(i): '/{}/'.format(i) if i < checks else '',
+                'checks-{}-method'.format(i): 'get',
+                'checks-{}-is_active'.format(i): 'on',
+                'checks-{}-id'.format(i): '',
+                'checks-{}-domain'.format(i): '',
+            })
+        return data
+
     def test_render_form(self):
         """Fetch page to render the form."""
         self.client.login(username=self.user.username, password='test')
@@ -292,7 +318,7 @@ class CreateDomainViewTestCase(TestCase):
 
     def test_domain_created(self):
         """Submitting valid data should create a new domain."""
-        data = {'name': 'example.com'}
+        data = self.get_valid_data()
         request = self.factory.post(self.url, data=data)
         request.user = self.user
         self.view(request)
@@ -302,7 +328,7 @@ class CreateDomainViewTestCase(TestCase):
 
     def test_form_redirect(self):
         """Submit valid data and check the redirect."""
-        data = {'name': 'example.com'}
+        data = self.get_valid_data()
         request = self.factory.post(self.url, data=data)
         request.user = self.user
         response = self.view(request)
@@ -311,7 +337,27 @@ class CreateDomainViewTestCase(TestCase):
 
     def test_invalid_data(self):
         """Handle invalid form submission."""
-        data = {}
+        data = self.get_valid_data()
+        data['name'] = ''
+        request = self.factory.post(self.url, data=data)
+        request.user = self.user
+        response = self.view(request)
+        self.assertContains(response, 'This field is required.')
+
+    def test_check_create(self):
+        """Related domain checks should also be created for the domain."""
+        data = self.get_valid_data(checks=2)
+        request = self.factory.post(self.url, data=data)
+        request.user = self.user
+        self.view(request)
+        domain = models.Domain.objects.latest('pk')
+        checks = domain.domaincheck_set.all()
+        self.assertEqual(checks.count(), 2)
+
+    def test_checks_required(self):
+        """At least on domain check is required."""
+        data = self.get_valid_data(checks=1)
+        data['checks-0-path'] = ''
         request = self.factory.post(self.url, data=data)
         request.user = self.user
         response = self.view(request)
@@ -326,7 +372,47 @@ class EditDomainViewTestCase(TestCase):
         self.view = views.EditDomain.as_view()
         self.user = factories.create_user(password='test')
         self.domain = factories.create_domain(owner=self.user)
+        self.check = factories.create_domain_check(domain=self.domain)
         self.url = reverse('domain-edit', kwargs={'domain': self.domain.name})
+
+    def get_valid_data(self):
+        result = self.get_form_data()
+        result.update(self.get_formset_data())
+        return result
+
+    def get_form_data(self):
+        return {'name': self.domain.name}
+
+    def get_formset_data(self):
+        checks = self.domain.domaincheck_set.all()
+        existing = checks.count()
+        data = {
+            'checks-TOTAL_FORMS': '3',
+            'checks-INITIAL_FORMS': existing,
+            'checks-MIN_NUM_FORMS': '1',
+            'checks-MAX_NUM_FORMS': '3',
+        }
+        for i in range(3):
+            if i < existing:
+                check = checks[i]
+                data.update({
+                    'checks-{}-protocol'.format(i): check.protocol,
+                    'checks-{}-path'.format(i): check.path,
+                    'checks-{}-method'.format(i): check.method,
+                    'checks-{}-is_active'.format(i): 'on' if check.is_active else '',
+                    'checks-{}-id'.format(i): check.pk,
+                    'checks-{}-domain'.format(i): self.domain.pk,
+                })
+            else:
+                data.update({
+                    'checks-{}-protocol'.format(i): 'http',
+                    'checks-{}-path'.format(i): '',
+                    'checks-{}-method'.format(i): 'get',
+                    'checks-{}-is_active'.format(i): 'on',
+                    'checks-{}-id'.format(i): '',
+                    'checks-{}-domain'.format(i): self.domain.pk,
+                })
+        return data
 
     def test_render_form(self):
         """Get the page and render the form."""
@@ -341,7 +427,8 @@ class EditDomainViewTestCase(TestCase):
 
     def test_domain_updated(self):
         """Update domain data on submit."""
-        data = {'name': 'example.com'}
+        data = self.get_valid_data()
+        data['name'] = 'example.com'
         request = self.factory.post(self.url, data=data)
         request.user = self.user
         self.view(request, domain=self.domain.name)
@@ -351,7 +438,7 @@ class EditDomainViewTestCase(TestCase):
 
     def test_form_redirect(self):
         """Redirect to the domain url on submit."""
-        data = {'name': 'example.com'}
+        data = self.get_valid_data()
         request = self.factory.post(self.url, data=data)
         request.user = self.user
         response = self.view(request, domain=self.domain.name)
@@ -361,7 +448,8 @@ class EditDomainViewTestCase(TestCase):
 
     def test_invalid_data(self):
         """Render form errors on submit."""
-        data = {'name': ''}
+        data = self.get_valid_data()
+        data['name'] = ''
         request = self.factory.post(self.url, data=data)
         request.user = self.user
         response = self.view(request, domain=self.domain.name)
@@ -369,7 +457,7 @@ class EditDomainViewTestCase(TestCase):
 
     def test_domain_does_not_exist(self):
         """Handle domain name which doesn't exist."""
-        data = {'name': 'example.com'}
+        data = self.get_valid_data()
         request = self.factory.post(self.url, data=data)
         request.user = self.user
         with self.assertRaises(Http404):
@@ -377,7 +465,7 @@ class EditDomainViewTestCase(TestCase):
 
     def test_not_owner(self):
         """User should not be able to edit domain if they are not the owner."""
-        data = {'name': 'example.com'}
+        data = self.get_valid_data()
         request = self.factory.post(self.url, data=data)
         request.user = factories.create_user()
         with self.assertRaises(PermissionDenied):
@@ -386,10 +474,33 @@ class EditDomainViewTestCase(TestCase):
     def test_owner_not_edittable(self):
         """User should not be able to change the owner."""
         other = factories.create_user()
-        data = {'name': 'example.com', 'owner': other}
+        data = self.get_valid_data()
+        data['name'] = 'example.com'
+        data['owner'] = other.pk
         request = self.factory.post(self.url, data=data)
         request.user = self.user
         self.view(request, domain=self.domain.name)
         self.domain.refresh_from_db()
         self.assertEqual(self.domain.name, 'example.com')
         self.assertEqual(self.domain.owner, self.user)
+
+    def test_create_new_checks(self):
+        """New paths to check can be added for the domain."""
+        data = self.get_valid_data()
+        data['checks-1-path'] = '/new/'
+        request = self.factory.post(self.url, data=data)
+        request.user = self.user
+        self.view(request, domain=self.domain.name)
+        checks = self.domain.domaincheck_set.all()
+        self.assertEqual(checks.count(), 2)
+        self.assertEqual(checks[1].path, '/new/')
+
+    def test_checks_edittable(self):
+        """Related checks should be edittable as well."""
+        data = self.get_valid_data()
+        data['checks-0-path'] = '/test/'
+        request = self.factory.post(self.url, data=data)
+        request.user = self.user
+        self.view(request, domain=self.domain.name)
+        self.check.refresh_from_db()
+        self.assertEqual(self.check.path, '/test/')
