@@ -7,7 +7,7 @@ from django.core.urlresolvers import reverse
 from django.http import Http404
 from django.test import RequestFactory, TestCase
 
-from .. import views
+from .. import models, views
 from . import factories
 
 
@@ -269,3 +269,127 @@ class CheckTimelineViewTestCase(TestCase):
         ]
         self.assertJSONEqual(
             response.content.decode('utf-8'), {'results': expected})
+
+
+class CreateDomainViewTestCase(TestCase):
+    """Adding new domains."""
+
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.url = reverse('domain-add')
+        self.view = views.CreateDomain.as_view()
+        self.user = factories.create_user(password='test')
+
+    def test_render_form(self):
+        """Fetch page to render the form."""
+        self.client.login(username=self.user.username, password='test')
+        with self.assertTemplateUsed('domainchecks/domain-form.html'):
+            response = self.client.get(self.url)
+            self.assertContains(
+                response,
+                '<input id="id_name" maxlength="253" name="name" type="text">',
+                html=True)
+
+    def test_domain_created(self):
+        """Submitting valid data should create a new domain."""
+        data = {'name': 'example.com'}
+        request = self.factory.post(self.url, data=data)
+        request.user = self.user
+        self.view(request)
+        domain = models.Domain.objects.latest('pk')
+        self.assertEqual(domain.name, 'example.com')
+        self.assertEqual(domain.owner, self.user)
+
+    def test_form_redirect(self):
+        """Submit valid data and check the redirect."""
+        data = {'name': 'example.com'}
+        request = self.factory.post(self.url, data=data)
+        request.user = self.user
+        response = self.view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['Location'], '/domains/example.com/')
+
+    def test_invalid_data(self):
+        """Handle invalid form submission."""
+        data = {}
+        request = self.factory.post(self.url, data=data)
+        request.user = self.user
+        response = self.view(request)
+        self.assertContains(response, 'This field is required.')
+
+
+class EditDomainViewTestCase(TestCase):
+    """Update an existing domain."""
+
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.view = views.EditDomain.as_view()
+        self.user = factories.create_user(password='test')
+        self.domain = factories.create_domain(owner=self.user)
+        self.url = reverse('domain-edit', kwargs={'domain': self.domain.name})
+
+    def test_render_form(self):
+        """Get the page and render the form."""
+        self.client.login(username=self.user.username, password='test')
+        with self.assertTemplateUsed('domainchecks/domain-form.html'):
+            response = self.client.get(self.url)
+            field = (
+                '<input id="id_name" maxlength="253"'
+                ' name="name" type="text" value="{}">'
+            ).format(self.domain.name)
+            self.assertContains(response, field, html=True)
+
+    def test_domain_updated(self):
+        """Update domain data on submit."""
+        data = {'name': 'example.com'}
+        request = self.factory.post(self.url, data=data)
+        request.user = self.user
+        self.view(request, domain=self.domain.name)
+        self.domain.refresh_from_db()
+        self.assertEqual(self.domain.name, 'example.com')
+        self.assertEqual(self.domain.owner, self.user)
+
+    def test_form_redirect(self):
+        """Redirect to the domain url on submit."""
+        data = {'name': 'example.com'}
+        request = self.factory.post(self.url, data=data)
+        request.user = self.user
+        response = self.view(request, domain=self.domain.name)
+        self.domain.refresh_from_db()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['Location'], self.domain.get_absolute_url())
+
+    def test_invalid_data(self):
+        """Render form errors on submit."""
+        data = {'name': ''}
+        request = self.factory.post(self.url, data=data)
+        request.user = self.user
+        response = self.view(request, domain=self.domain.name)
+        self.assertContains(response, 'This field is required.')
+
+    def test_domain_does_not_exist(self):
+        """Handle domain name which doesn't exist."""
+        data = {'name': 'example.com'}
+        request = self.factory.post(self.url, data=data)
+        request.user = self.user
+        with self.assertRaises(Http404):
+            self.view(request, domain='does.not.exist')
+
+    def test_not_owner(self):
+        """User should not be able to edit domain if they are not the owner."""
+        data = {'name': 'example.com'}
+        request = self.factory.post(self.url, data=data)
+        request.user = factories.create_user()
+        with self.assertRaises(PermissionDenied):
+            self.view(request, domain=self.domain.name)
+
+    def test_owner_not_edittable(self):
+        """User should not be able to change the owner."""
+        other = factories.create_user()
+        data = {'name': 'example.com', 'owner': other}
+        request = self.factory.post(self.url, data=data)
+        request.user = self.user
+        self.view(request, domain=self.domain.name)
+        self.domain.refresh_from_db()
+        self.assertEqual(self.domain.name, 'example.com')
+        self.assertEqual(self.domain.owner, self.user)
