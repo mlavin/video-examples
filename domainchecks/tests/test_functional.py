@@ -85,3 +85,14 @@ class BrowserTestCase(StaticLiveServerTestCase):
         form.submit()
         title = self.browser.find_element_by_tag_name('h1')
         self.assertEqual(title.text, 'edit.com')
+
+    def test_change_password(self):
+        """Change user's password."""
+        self.get('/password/change/'.format(self.domain.name))
+        form = self.browser.find_element_by_tag_name('form')
+        form.find_element_by_name('old_password').send_keys('test')
+        form.find_element_by_name('new_password1').send_keys('newpassword')
+        form.find_element_by_name('new_password2').send_keys('newpassword')
+        form.submit()
+        message = self.browser.find_element_by_class_name('message')
+        self.assertEqual(message.text, 'Your password was successfully changed.')
