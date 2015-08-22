@@ -39,3 +39,13 @@ nav ul li a:hover {
 #login .form-wrapper {
     text-align: center;
 }
+
+#user-nav ul {
+    border: none;
+    text-align: right;
+    margin-bottom: 0;
+}
+
+#user-nav ul li {
+    padding: 0.5em 0;
+}

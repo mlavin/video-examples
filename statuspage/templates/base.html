@@ -15,6 +15,21 @@
 </head>
 <body id="{% block body-id %}body{% endblock %}" class="{% block body-class %}body{% endblock %}">
     <div class="container">
+        {% block user-nav %}
+            <nav id="user-nav" class="row">
+                <ul>
+                    {% if user.is_authenticated %}
+                        <li >
+                            <a href="{% url 'logout' %}">Logout</a>
+                        </li>
+                    {% else %}
+                        <li>
+                            <a href="{% url 'login' %}">Login</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endblock %}
         {% block content-wrapper %}
             {% block page-header-wrapper %}
             <section class="header">
