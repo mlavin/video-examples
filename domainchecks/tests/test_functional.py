@@ -23,7 +23,7 @@ class BrowserTestCase(StaticLiveServerTestCase):
         super().tearDownClass()
 
     def setUp(self):
-        self.user = factories.create_user(password='test', is_staff=True)
+        self.user = factories.create_user(password='test')
         self.domain = factories.create_domain(owner=self.user)
         self.check = factories.create_domain_check(domain=self.domain)
         self.login(self.user.username, 'test')
@@ -36,15 +36,14 @@ class BrowserTestCase(StaticLiveServerTestCase):
 
     def login(self, username, password):
         """Navigate to login page and login."""
-        # FIXME: There is currently no way to login unless you are staff.
-        self.get('/admin/login/')
+        self.get('/login/')
         self.browser.find_element_by_name('username').send_keys(username)
         self.browser.find_element_by_name('password').send_keys(password)
         self.browser.find_element_by_tag_name('form').submit()
 
     def logout(self):
         """Logout current user."""
-        self.get('/admin/logout/')
+        self.get('/logout/')
 
     def test_view_domains(self):
         """Login and view user's domains."""
