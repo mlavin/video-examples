@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block body-id %}login{% endblock %}
+
+{% block page-header %}Login{% endblock %}
+
+{% block nav-wrapper %}{% endblock %}
+
+{% block content %}
+<section class="form-wrapper">
+    <form method="post" action="">{% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="row">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+        <div class="row">
+            {{ form.username.errors }}
+            {{ form.username.label_tag }} {{ form.username }}
+        </div>
+        <div class="row">
+            {{ form.password.errors }}
+            {{ form.password.label_tag }} {{ form.password }}
+        </div>
+        <div class="row">
+            <button class="button-primary">Login</button>
+            <input type="hidden" name="next" value="{{ next }}" >
+        </div>
+    </form>
+</section>
+{% endblock %}

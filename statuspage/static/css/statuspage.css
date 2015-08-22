@@ -35,3 +35,7 @@ nav ul li a:hover {
 .title {
     text-align: center;
 }
+
+#login .form-wrapper {
+    text-align: center;
+}
