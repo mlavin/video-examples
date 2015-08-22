@@ -66,3 +66,41 @@ def create_check_result(**kwargs):
     if 'domain_check' not in values:
         values['domain_check'] = create_domain_check()
     return models.CheckResult.objects.create(**values)
+
+
+def build_domain_form_data(domain=None):
+    """Build example valid data for the adding/editting a domain."""
+    if domain is None:
+        checks = []
+        existing = 0
+    else:
+        checks = domain.domaincheck_set.all()
+        existing = checks.count()
+    data = {
+        'name': 'example.com' if domain is None else domain.name,
+        'checks-TOTAL_FORMS': '3',
+        'checks-INITIAL_FORMS': existing,
+        'checks-MIN_NUM_FORMS': '1',
+        'checks-MAX_NUM_FORMS': '3',
+    }
+    for i in range(3):
+        if i < existing:
+            check = checks[i]
+            data.update({
+                'checks-{}-protocol'.format(i): check.protocol,
+                'checks-{}-path'.format(i): check.path,
+                'checks-{}-method'.format(i): check.method,
+                'checks-{}-is_active'.format(i): 'on' if check.is_active else '',
+                'checks-{}-id'.format(i): check.pk,
+                'checks-{}-domain'.format(i): domain.pk,
+            })
+        else:
+            data.update({
+                'checks-{}-protocol'.format(i): 'http',
+                'checks-{}-path'.format(i): '/' if domain is None and i == 0 else '',
+                'checks-{}-method'.format(i): 'get',
+                'checks-{}-is_active'.format(i): 'on',
+                'checks-{}-id'.format(i): '',
+                'checks-{}-domain'.format(i): domain.pk if domain else '',
+            })
+    return data

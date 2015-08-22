@@ -1,7 +1,7 @@
 import django_filters
 
 from django import forms
-from django.forms.models import inlineformset_factory
+from django.forms.models import BaseInlineFormSet, inlineformset_factory
 
 from . import models
 
@@ -37,9 +37,25 @@ class CheckResultFilter(django_filters.FilterSet):
         order_by = ('-checked_on', )
 
 
+class BaseDomainCheckFormSet(BaseInlineFormSet):
+    """Additional validations for required domain checks."""
+
+    def clean(self):
+        super().clean()
+        active = 0
+        for form in self.forms:
+            if form.is_valid() and form not in self.deleted_forms:
+                if form.cleaned_data.get('is_active', False):
+                    active += 1
+        if active == 0:
+            msg = 'A domain must have at least one active check.'
+            raise forms.ValidationError(msg)
+
+
 DomainCheckFormSet = inlineformset_factory(
     parent_model=models.Domain, model=models.DomainCheck,
     fields=('protocol', 'path', 'method', 'is_active', ),
+    formset=BaseDomainCheckFormSet,
     extra=3, can_delete=False,
     max_num=3, validate_max=True,
     min_num=1, validate_min=True,

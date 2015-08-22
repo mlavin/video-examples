@@ -281,30 +281,10 @@ class CreateDomainViewTestCase(TestCase):
         self.user = factories.create_user(password='test')
 
     def get_valid_data(self, checks=1):
-        result = self.get_form_data()
-        result.update(self.get_formset_data(checks=checks))
+        result = factories.build_domain_form_data(domain=None)
+        for i in range(checks):
+            result['checks-{}-path'.format(i)] = '/{}/'.format(i)
         return result
-
-    def get_form_data(self):
-        return {'name': 'example.com'}
-
-    def get_formset_data(self, checks=1):
-        data = {
-            'checks-TOTAL_FORMS': '3',
-            'checks-INITIAL_FORMS': '0',
-            'checks-MIN_NUM_FORMS': '1',
-            'checks-MAX_NUM_FORMS': '3',
-        }
-        for i in range(3):
-            data.update({
-                'checks-{}-protocol'.format(i): 'http',
-                'checks-{}-path'.format(i): '/{}/'.format(i) if i < checks else '',
-                'checks-{}-method'.format(i): 'get',
-                'checks-{}-is_active'.format(i): 'on',
-                'checks-{}-id'.format(i): '',
-                'checks-{}-domain'.format(i): '',
-            })
-        return data
 
     def test_render_form(self):
         """Fetch page to render the form."""
@@ -376,43 +356,7 @@ class EditDomainViewTestCase(TestCase):
         self.url = reverse('domain-edit', kwargs={'domain': self.domain.name})
 
     def get_valid_data(self):
-        result = self.get_form_data()
-        result.update(self.get_formset_data())
-        return result
-
-    def get_form_data(self):
-        return {'name': self.domain.name}
-
-    def get_formset_data(self):
-        checks = self.domain.domaincheck_set.all()
-        existing = checks.count()
-        data = {
-            'checks-TOTAL_FORMS': '3',
-            'checks-INITIAL_FORMS': existing,
-            'checks-MIN_NUM_FORMS': '1',
-            'checks-MAX_NUM_FORMS': '3',
-        }
-        for i in range(3):
-            if i < existing:
-                check = checks[i]
-                data.update({
-                    'checks-{}-protocol'.format(i): check.protocol,
-                    'checks-{}-path'.format(i): check.path,
-                    'checks-{}-method'.format(i): check.method,
-                    'checks-{}-is_active'.format(i): 'on' if check.is_active else '',
-                    'checks-{}-id'.format(i): check.pk,
-                    'checks-{}-domain'.format(i): self.domain.pk,
-                })
-            else:
-                data.update({
-                    'checks-{}-protocol'.format(i): 'http',
-                    'checks-{}-path'.format(i): '',
-                    'checks-{}-method'.format(i): 'get',
-                    'checks-{}-is_active'.format(i): 'on',
-                    'checks-{}-id'.format(i): '',
-                    'checks-{}-domain'.format(i): self.domain.pk,
-                })
-        return data
+        return factories.build_domain_form_data(self.domain)
 
     def test_render_form(self):
         """Get the page and render the form."""
