@@ -28,6 +28,9 @@
             <button class="button-primary">Login</button>
             <input type="hidden" name="next" value="{{ next }}" >
         </div>
+        <div class="row">
+            <a href="{% url 'register' %}">Create an Account</a>
+        </div>
     </form>
 </section>
 {% endblock %}

@@ -36,7 +36,8 @@ nav ul li a:hover {
     text-align: center;
 }
 
-#login .form-wrapper {
+#login .form-wrapper,
+#register .form-wrapper {
     text-align: center;
 }
 
