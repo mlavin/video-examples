@@ -17,6 +17,9 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 
+from .views import RegistrationView
+
+
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^login/$', auth_views.login, {'template_name': 'login.html'}, name='login'),
@@ -25,5 +28,6 @@ urlpatterns = [
         {'template_name': 'password-change.html'}, name='password_change'),
     url(r'^password/change/done/$', auth_views.password_change_done,
         {'template_name': 'password-change-done.html'}, name='password_change_done'),
+    url(r'register/$', RegistrationView.as_view(), name='register'),
     url(r'^', include('domainchecks.urls')),
 ]

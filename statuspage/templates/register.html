@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block body-id %}register{% endblock %}
+
+{% block page-header %}Create an Account{% endblock %}
+
+{% block user-nav %}{% endblock %}
+
+{% block nav-wrapper %}{% endblock %}
+
+{% block content %}
+<section class="form-wrapper">
+    <form method="post" action="">{% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="row">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+        <div class="row">
+            {{ form.username.errors }}
+            {{ form.username.label_tag }} {{ form.username }}
+        </div>
+        <div class="row">
+            {{ form.password1.errors }}
+            {{ form.password1.label_tag }} {{ form.password1 }}
+        </div>
+        <div class="row">
+            {{ form.password2.errors }}
+            {{ form.password2.label_tag }} {{ form.password2 }}
+        </div>
+        <div class="row">
+            <button class="button-primary">Create Account</button>
+        </div>
+    </form>
+</section>
+{% endblock %}
