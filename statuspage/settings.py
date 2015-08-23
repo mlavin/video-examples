@@ -110,3 +110,15 @@ LOGIN_URL = '/login/'
 LOGOUT_URL = '/logout/'
 
 LOGIN_REDIRECT_URL = '/'
+
+# Celery settings
+
+BROKER_URL = 'amqp://statuspage:mybrokerpassword@localhost:5672/statuspage'
+
+CELERY_RESULT_BACKEND = None
+
+CELERY_TASK_SERIALIZER = 'json'
+
+CELERY_RESULT_SERIALIZER = 'json'
+
+CELERY_ACCEPT_CONTENT = ('json', )
