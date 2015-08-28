@@ -113,6 +113,8 @@ LOGIN_REDIRECT_URL = '/'
 
 # Celery settings
 
+from celery.schedules import crontab
+
 BROKER_URL = 'amqp://statuspage:mybrokerpassword@localhost:5672/statuspage'
 
 CELERY_RESULT_BACKEND = None
@@ -122,3 +124,13 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 
 CELERY_ACCEPT_CONTENT = ('json', )
+
+CELERY_TIMEZONE = TIME_ZONE
+
+CELERYBEAT_SCHEDULE = {
+    'update-domains': {
+        'task': 'domainchecks.tasks.queue_domains',
+        'kwargs': {'minutes': 2},
+        'schedule': crontab(minute='*/2'),
+    },
+}
