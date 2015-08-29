@@ -8,3 +8,5 @@ django-filter==0.10.0
 selenium==2.47.1
 
 celery==3.1.18
+
+flower==0.8.3
