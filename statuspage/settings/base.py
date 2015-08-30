@@ -22,19 +22,9 @@ BASE_DIR = os.environ['BASE_DIR']
 os.environ.setdefault(
     'DATABASE_URL',
     'sqlite:///{}'.format(os.path.join(BASE_DIR, 'db.sqlite3')))
-
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'f@$t8g67yc0%npk4t69kfaky7cl@4*1*d37y2!56%uhl6z1_hh'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
-
+os.environ.setdefault(
+    'BROKER_URL',
+    'amqp://guest:guest@localhost:5672/')
 
 # Application definition
 
@@ -121,7 +111,7 @@ LOGIN_REDIRECT_URL = '/'
 
 from celery.schedules import crontab
 
-BROKER_URL = 'amqp://statuspage:mybrokerpassword@localhost:5672/statuspage'
+BROKER_URL = os.environ['BROKER_URL']
 
 CELERY_RESULT_BACKEND = None
 
