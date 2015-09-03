@@ -17,3 +17,5 @@ if 'test' in sys.argv:
         'django.contrib.auth.hashers.SHA1PasswordHasher',
         'django.contrib.auth.hashers.MD5PasswordHasher',
     )
+
+    LOGGING['root']['handlers'] = []

@@ -130,3 +130,31 @@ CELERYBEAT_SCHEDULE = {
         'schedule': crontab(minute='*/2'),
     },
 }
+
+# Logging settings
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'default': {
+            'format': '[%(asctime)s: %(levelname)s/%(name)s] - %(message)s',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'default',
+        }
+    },
+    'root': {
+        'level': 'INFO',
+        'handlers': ['console', ]
+    },
+    'loggers': {
+        'django': {
+            'propagate': True,
+        },
+    }
+}
