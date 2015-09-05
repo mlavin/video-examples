@@ -1,0 +1,14 @@
+{
+    "curly": true,
+    "eqeqeq": true,
+    "funcscope": true,
+    "undef": true,
+    "latedef": true,
+    "shadow": "outer",
+    "sub": true,
+    "quotmark": "single",
+    "maxlen": 100,
+    "maxcomplexity": 10,
+    "browser": true,
+    "jquery": true
+}
