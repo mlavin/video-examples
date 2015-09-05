@@ -12,3 +12,5 @@ celery==3.1.18
 flower==0.8.3
 
 dj-database-url==0.3.0
+
+coverage==3.7.1
