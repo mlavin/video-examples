@@ -14,3 +14,6 @@ flower==0.8.3
 dj-database-url==0.3.0
 
 coverage==3.7.1
+
+flake8==2.4.1
+pep8-naming==0.3.3
